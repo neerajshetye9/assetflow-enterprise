@@ -7,7 +7,7 @@ const listResources = async (organizationId, filters = {}) => {
   let sql = `
     SELECT r.id, r.name, r.resource_type, r.capacity, r.description, r.status,
            l.name AS location_name, l.id AS location_id,
-           COUNT(rb.id) FILTER (WHERE rb.status = 'CONFIRMED' AND rb.end_time > NOW()) AS active_bookings
+           COUNT(rb.id) FILTER (WHERE rb.status = 'UPCOMING' AND rb.end_at > NOW()) AS active_bookings
     FROM resources r
     LEFT JOIN locations l ON l.id = r.location_id
     LEFT JOIN resource_bookings rb ON rb.resource_id = r.id
@@ -48,7 +48,7 @@ const updateResource = async (organizationId, actorMembershipId, resourceId, bod
 const listBookings = async (organizationId, filters = {}) => {
   const { resourceId, membershipId, from, to } = filters;
   let sql = `
-    SELECT rb.id, rb.start_time, rb.end_time, rb.title, rb.purpose, rb.status, rb.attendee_count, rb.created_at,
+    SELECT rb.id, rb.start_at AS start_time, rb.end_at AS end_time, rb.title, rb.purpose, rb.status, rb.created_at,
            r.name AS resource_name, r.resource_type, r.capacity,
            u.full_name AS booked_by_name, l.name AS location_name
     FROM resource_bookings rb
@@ -59,15 +59,15 @@ const listBookings = async (organizationId, filters = {}) => {
   const params = [organizationId];
   if (resourceId) { params.push(resourceId); sql += ` AND rb.resource_id = $${params.length}`; }
   if (membershipId) { params.push(membershipId); sql += ` AND rb.booked_by = $${params.length}`; }
-  if (from) { params.push(from); sql += ` AND rb.end_time >= $${params.length}`; }
-  if (to) { params.push(to); sql += ` AND rb.start_time <= $${params.length}`; }
-  sql += ' ORDER BY rb.start_time ASC';
+  if (from) { params.push(from); sql += ` AND rb.end_at >= $${params.length}`; }
+  if (to) { params.push(to); sql += ` AND rb.start_at <= $${params.length}`; }
+  sql += ' ORDER BY rb.start_at ASC';
   const { rows } = await query(sql, params);
   return rows;
 };
 
 const createBooking = async (organizationId, actorMembershipId, body) => {
-  const { resourceId, startTime, endTime, title, purpose, attendeeCount } = body;
+  const { resourceId, startTime, endTime, title, purpose } = body;
 
   // Verify resource is bookable
   const { rows: [resource] } = await query(`SELECT id, status FROM resources WHERE id = $1 AND organization_id = $2`, [resourceId, organizationId]);
@@ -77,16 +77,16 @@ const createBooking = async (organizationId, actorMembershipId, body) => {
   // Check overlap using simple query (btree_gist handles constraint but gives clearer UX with this check)
   const { rows: overlap } = await query(
     `SELECT id FROM resource_bookings
-     WHERE resource_id = $1 AND status IN ('CONFIRMED','PENDING')
-       AND start_time < $2 AND end_time > $3`,
+     WHERE resource_id = $1 AND status IN ('UPCOMING','ONGOING')
+       AND start_at < $2 AND end_at > $3`,
     [resourceId, endTime, startTime]
   );
   if (overlap.length > 0) throw Object.assign(new Error('Resource is already booked for that time slot'), { status: 409 });
 
   const { rows: [booking] } = await query(
-    `INSERT INTO resource_bookings (organization_id, resource_id, booked_by, start_time, end_time, title, purpose, attendee_count)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
-    [organizationId, resourceId, actorMembershipId, startTime, endTime, title || null, purpose || null, attendeeCount || null]
+    `INSERT INTO resource_bookings (organization_id, resource_id, booked_by, start_at, end_at, title, purpose)
+     VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+    [organizationId, resourceId, actorMembershipId, startTime, endTime, title || null, purpose || null]
   );
   await logActivity({ organizationId, actorMembershipId, action: 'BOOKING_CREATED', entityType: 'resource_booking', entityId: booking.id });
   return booking;
@@ -95,7 +95,7 @@ const createBooking = async (organizationId, actorMembershipId, body) => {
 const cancelBooking = async (organizationId, actorMembershipId, bookingId, reason) => {
   const { rows: [booking] } = await query(
     `UPDATE resource_bookings SET status = 'CANCELLED', cancellation_reason = $1, cancelled_at = NOW(), cancelled_by = $2
-     WHERE id = $3 AND organization_id = $4 AND status IN ('PENDING','CONFIRMED') RETURNING *`,
+     WHERE id = $3 AND organization_id = $4 AND status IN ('UPCOMING','ONGOING') RETURNING *`,
     [reason || null, actorMembershipId, bookingId, organizationId]
   );
   if (!booking) throw Object.assign(new Error('Booking not found or cannot be cancelled'), { status: 404 });
@@ -107,12 +107,12 @@ const getResourceAvailability = async (organizationId, resourceId, date) => {
   const dayEnd = new Date(date); dayEnd.setHours(23,59,59,999);
 
   const { rows: bookings } = await query(
-    `SELECT start_time, end_time, booked_by, title, status
+    `SELECT start_at AS start_time, end_at AS end_time, booked_by, title, status
      FROM resource_bookings
      WHERE resource_id = $1 AND organization_id = $2
-       AND start_time >= $3 AND end_time <= $4
-       AND status IN ('CONFIRMED','PENDING')
-     ORDER BY start_time`,
+       AND start_at >= $3 AND end_at <= $4
+       AND status IN ('UPCOMING','ONGOING')
+     ORDER BY start_at`,
     [resourceId, organizationId, dayStart, dayEnd]
   );
   return bookings;
