@@ -1,4 +1,11 @@
 const { Router } = require('express');
+const c = require('./transfers.controller');
+const { authenticate } = require('../../middleware/auth');
+const { requireRole } = require('../../middleware/rbac');
 const router = Router();
-// TODO: implement routes
+router.use(authenticate);
+router.get('/requests',              c.listRequests);
+router.post('/requests',             c.requestTransfer);
+router.put('/requests/:id/approve',  requireRole('ADMIN','ASSET_MANAGER','DEPARTMENT_HEAD'), c.approveTransfer);
+router.put('/requests/:id/reject',   requireRole('ADMIN','ASSET_MANAGER','DEPARTMENT_HEAD'), c.rejectTransfer);
 module.exports = router;

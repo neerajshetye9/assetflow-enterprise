@@ -18,7 +18,13 @@ import Employees from './pages/org/Employees';
 import AuditCycles from './pages/audit/AuditCycles';
 import AuditCycleDetail from './pages/audit/AuditCycleDetail';
 
-// Placeholder for other branches (will be added when branches merge)
+// Atharva's pages
+import AssetDirectory from './pages/assets/AssetDirectory';
+import AssetDetail from './pages/assets/AssetDetail';
+import RegisterAsset from './pages/assets/RegisterAsset';
+import Allocations from './pages/allocations/Allocations';
+import Maintenance from './pages/maintenance/Maintenance';
+
 const Placeholder = ({ title }) => (
   <div className="card">
     <h2 className="text-xl font-semibold text-slate-100">{title}</h2>
@@ -58,12 +64,18 @@ export default function App() {
             <Route path="/audit/cycles" element={<AuditCycles />} />
             <Route path="/audit/cycles/:id" element={<AuditCycleDetail />} />
 
-            {/* Atharva's routes — placeholders */}
-            <Route path="/assets/*" element={<Placeholder title="Asset Management" />} />
-            <Route path="/allocations/*" element={<Placeholder title="Allocations" />} />
+            {/* Atharva's routes */}
+            <Route path="/assets" element={<AssetDirectory />} />
+            <Route path="/assets/new" element={<RegisterAsset />} />
+            <Route path="/assets/:id" element={<AssetDetail />} />
+            <Route path="/allocations" element={<Allocations />} />
+            <Route path="/allocations/request" element={<Allocations />} />
+            <Route path="/allocations/active" element={<Allocations />} />
             <Route path="/transfers" element={<Placeholder title="Transfers" />} />
             <Route path="/returns" element={<Placeholder title="Returns" />} />
-            <Route path="/maintenance/*" element={<Placeholder title="Maintenance" />} />
+            <Route path="/maintenance" element={<Maintenance />} />
+            <Route path="/maintenance/new" element={<Maintenance />} />
+
 
             {/* Vignesh's routes — placeholders */}
             <Route path="/resources" element={<Placeholder title="Resources" />} />
