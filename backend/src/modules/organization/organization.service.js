@@ -1,5 +1,7 @@
 const { query } = require('../../config/db');
 const { logActivity } = require('../../shared/activityLogger');
+const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 
 // ─── DEPARTMENTS ──────────────────────────────────────────────
 const getDepartments = async (organizationId) => {
@@ -119,8 +121,6 @@ const getEmployees = async (organizationId) => {
 const createEmployee = async (organizationId, actorMembershipId, body) => {
   const { fullName, email, employeeCode, jobTitle, departmentId, joiningDate } = body;
   const tempPassword = crypto.randomBytes(8).toString('hex');
-  const bcrypt = require('bcryptjs');
-  const crypto = require('crypto');
   const passwordHash = await bcrypt.hash(tempPassword, 12);
 
   const { rows: [existing] } = await query(`SELECT id FROM users WHERE email = $1`, [email]);
