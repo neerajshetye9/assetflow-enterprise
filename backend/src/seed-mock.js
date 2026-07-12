@@ -16,35 +16,35 @@ const pool = new Pool({
 const ORGS = [
   { 
     name: 'Acme Tech Solutions', code: 'TECH', domain: 'acmetech.com',
-    depts: ['Engineering', 'IT', 'Product', 'HR'], 
+    depts: ['Engineering', 'IT', 'Product', 'HR', 'Maintenance'], 
     locs: ['HQ - Silicon Valley', 'NYC Office'], 
     resources: [{name:'Boardroom A', type:'ROOM', cap:12}, {name:'Server Rack 1', type:'EQUIPMENT', cap:0}], 
     assetCats: ['Laptops', 'Monitors', 'Servers'] 
   },
   { 
     name: 'City Health Hospital', code: 'MED', domain: 'cityhealth.org',
-    depts: ['Surgery', 'Nursing', 'Administration', 'Pharmacy'], 
+    depts: ['Surgery', 'Nursing', 'Administration', 'Pharmacy', 'Maintenance'], 
     locs: ['Main Campus', 'North Wing'], 
     resources: [{name:'Operating Theater 1', type:'ROOM', cap:5}, {name:'Ambulance A1', type:'VEHICLE', cap:2}], 
     assetCats: ['Medical Devices', 'Beds', 'IT Equipment'] 
   },
   { 
     name: 'Global Manufacturing Inc.', code: 'MFG', domain: 'globalmfg.net',
-    depts: ['Assembly', 'Logistics', 'Quality Assurance', 'Safety'], 
+    depts: ['Assembly', 'Logistics', 'Quality Assurance', 'Safety', 'Maintenance'], 
     locs: ['Plant 1', 'Warehouse A'], 
     resources: [{name:'Forklift FL-100', type:'VEHICLE', cap:1}, {name:'CNC Machine A', type:'EQUIPMENT', cap:0}], 
     assetCats: ['Machinery', 'Tools', 'Vehicles'] 
   },
   { 
     name: 'National University', code: 'EDU', domain: 'national.edu',
-    depts: ['Science Faculty', 'Arts Faculty', 'Library', 'IT Services'], 
+    depts: ['Science Faculty', 'Arts Faculty', 'Library', 'IT Services', 'Maintenance'], 
     locs: ['Main Campus', 'Science Block'], 
     resources: [{name:'Auditorium 1', type:'ROOM', cap:200}, {name:'Chemistry Lab 3', type:'OTHER', cap:30}], 
     assetCats: ['Projectors', 'Computers', 'Lab Equipment'] 
   },
   { 
     name: 'Swift Logistics', code: 'LOG', domain: 'swiftlog.com',
-    depts: ['Fleet Management', 'Dispatch', 'Customer Service'], 
+    depts: ['Fleet Management', 'Dispatch', 'Customer Service', 'Maintenance'], 
     locs: ['Hub 1', 'Hub 2'], 
     resources: [{name:'Delivery Van V1', type:'VEHICLE', cap:2}], 
     assetCats: ['Trucks', 'Scanners', 'Office Furniture'] 
