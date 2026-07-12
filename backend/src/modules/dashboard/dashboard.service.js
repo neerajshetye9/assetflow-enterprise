@@ -1,10 +1,13 @@
 const { query } = require('../../config/db');
 
+// Safe wrapper — returns fallback instead of crashing the whole dashboard
+const safe = async (fn, fallback) => { try { return await fn(); } catch (e) { console.error('[dashboard] query error:', e.message); return fallback; } };
+
 // ─── DASHBOARD ────────────────────────────────────────────────
 const getDashboard = async (organizationId) => {
   const [assetStats, allocStats, maintStats, bookingStats, auditStats, recentActivity] = await Promise.all([
     // Asset statistics
-    query(`
+    safe(() => query(`
       SELECT
         COUNT(*) AS total,
         COUNT(*) FILTER (WHERE status = 'AVAILABLE') AS available,
@@ -13,30 +16,35 @@ const getDashboard = async (organizationId) => {
         COUNT(*) FILTER (WHERE status = 'LOST') AS lost,
         SUM(acquisition_cost) AS total_value
       FROM assets WHERE organization_id = $1`, [organizationId]),
+      { rows: [{}] }),
 
     // Allocation requests pending
-    query(`SELECT COUNT(*) AS pending FROM asset_allocation_requests WHERE organization_id = $1 AND status = 'PENDING'`, [organizationId]),
+    safe(() => query(`SELECT COUNT(*) AS pending FROM asset_allocation_requests WHERE organization_id = $1 AND status = 'PENDING'`, [organizationId]),
+      { rows: [{ pending: 0 }] }),
 
     // Maintenance stats
-    query(`
+    safe(() => query(`
       SELECT
         COUNT(*) FILTER (WHERE status = 'PENDING') AS pending,
         COUNT(*) FILTER (WHERE status IN ('APPROVED','TECHNICIAN_ASSIGNED','IN_PROGRESS')) AS in_progress,
         COUNT(*) FILTER (WHERE status = 'RESOLVED' AND resolved_at > NOW() - INTERVAL '30 days') AS resolved_last_30d
       FROM maintenance_requests WHERE organization_id = $1`, [organizationId]),
+      { rows: [{}] }),
 
     // Today's bookings
-    query(`SELECT COUNT(*) AS today FROM resource_bookings
+    safe(() => query(`SELECT COUNT(*) AS today FROM resource_bookings
        WHERE organization_id = $1 AND DATE(start_time) = CURRENT_DATE AND status = 'CONFIRMED'`, [organizationId]),
+      { rows: [{ today: 0 }] }),
 
     // Active audit cycle
-    query(`SELECT id, name, status,
+    safe(() => query(`SELECT id, name, status,
        (SELECT COUNT(*) FROM audit_items WHERE audit_cycle_id = audit_cycles.id) AS total_items,
        (SELECT COUNT(*) FROM audit_items WHERE audit_cycle_id = audit_cycles.id AND verification_status = 'VERIFIED') AS verified_items
        FROM audit_cycles WHERE organization_id = $1 AND status = 'IN_PROGRESS' LIMIT 1`, [organizationId]),
+      { rows: [] }),
 
     // Recent activity logs
-    query(`
+    safe(() => query(`
       SELECT al.action, al.entity_type, al.created_at,
              u.full_name AS actor_name
       FROM activity_logs al
@@ -44,6 +52,7 @@ const getDashboard = async (organizationId) => {
       JOIN users u ON u.id = om.user_id
       WHERE al.organization_id = $1
       ORDER BY al.created_at DESC LIMIT 10`, [organizationId]),
+      { rows: [] }),
   ]);
 
   return {
