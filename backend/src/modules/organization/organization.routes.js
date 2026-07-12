@@ -4,6 +4,9 @@ const { authenticate } = require('../../middleware/auth');
 const { requireRole } = require('../../middleware/rbac');
 
 const router = Router();
+
+router.get('/departments/public/:code', c.getPublicDepartments);
+
 router.use(authenticate);
 
 router.get('/departments',              c.getDepartments);
