@@ -1,0 +1,89 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-primary-50: #eff6ff;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-900: #1e3a8a;
+  --color-surface: #0f172a;
+  --color-surface-card: #1e293b;
+  --color-surface-border: #334155;
+  --font-family-sans: 'Inter', system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-surface);
+    color: #f1f5f9;
+    font-family: var(--font-family-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  * { box-sizing: border-box; }
+}
+
+@layer components {
+  .card {
+    background-color: var(--color-surface-card);
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-surface-border);
+    padding: 1.5rem;
+  }
+  .btn-primary {
+    background-color: var(--color-primary-600);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: background-color 0.15s;
+    cursor: pointer;
+    border: none;
+  }
+  .btn-primary:hover { background-color: var(--color-primary-700); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary {
+    background-color: var(--color-surface-border);
+    color: #f1f5f9;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: background-color 0.15s;
+    cursor: pointer;
+    border: none;
+  }
+  .btn-secondary:hover { background-color: #475569; }
+  .btn-danger {
+    background-color: #dc2626;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.15s;
+  }
+  .btn-danger:hover { background-color: #b91c1c; }
+  .input {
+    width: 100%;
+    background-color: var(--color-surface-card);
+    border: 1px solid var(--color-surface-border);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    color: #f1f5f9;
+    outline: none;
+    font-size: 0.875rem;
+  }
+  .input:focus { border-color: var(--color-primary-500); box-shadow: 0 0 0 2px rgba(59,130,246,0.3); }
+  .input::placeholder { color: #94a3b8; }
+  .label { display: block; font-size: 0.875rem; font-weight: 500; color: #cbd5e1; margin-bottom: 0.25rem; }
+  .badge-green  { display: inline-flex; align-items: center; padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 500; background-color: #14532d; color: #86efac; }
+  .badge-yellow { display: inline-flex; align-items: center; padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 500; background-color: #713f12; color: #fde047; }
+  .badge-red    { display: inline-flex; align-items: center; padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 500; background-color: #7f1d1d; color: #fca5a5; }
+  .badge-blue   { display: inline-flex; align-items: center; padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 500; background-color: #1e3a8a; color: #93c5fd; }
+  .badge-gray   { display: inline-flex; align-items: center; padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 500; background-color: #334155; color: #cbd5e1; }
+  .table-header { text-align: left; font-size: 0.75rem; font-weight: 500; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.75rem 1rem; }
+  .table-cell   { padding: 0.75rem 1rem; font-size: 0.875rem; color: #e2e8f0; }
+  .table-row    { border-bottom: 1px solid var(--color-surface-border); transition: background-color 0.1s; }
+  .table-row:hover { background-color: rgba(30,41,59,0.5); }
+}
