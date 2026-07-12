@@ -3,14 +3,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/axios';
 
 const fetchMaint = () => api.get('/maintenance').then((r) => r.data);
-const fetchAssets = () => api.get('/assets').then((r) => r.data);
+const fetchMyAssets = () => api.get('/reports/me/allocations').then((r) => r.data.allocations?.filter(a => a.status === 'ACTIVE') || []);
 const PRIORITIES = ['LOW','MEDIUM','HIGH','CRITICAL'];
 const statusColor = { PENDING:'gray', APPROVED:'blue', REJECTED:'red', TECHNICIAN_ASSIGNED:'yellow', IN_PROGRESS:'yellow', RESOLVED:'green', CLOSED:'gray' };
 
 export default function Maintenance() {
   const qc = useQueryClient();
   const { data: requests = [], isLoading } = useQuery({ queryKey: ['maintenance'], queryFn: fetchMaint });
-  const { data: assets = [] } = useQuery({ queryKey: ['assets'], queryFn: fetchAssets });
+  const { data: myAssets = [] } = useQuery({ queryKey: ['my-assets'], queryFn: fetchMyAssets });
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ assetId: '', issueDescription: '', priority: 'MEDIUM' });
   const [error, setError] = useState('');
@@ -48,7 +48,7 @@ export default function Maintenance() {
               <label className="label">Asset *</label>
               <select id="maint-asset" className="input" value={form.assetId} onChange={(e) => setForm({ ...form, assetId: e.target.value })}>
                 <option value="">Select asset…</option>
-                {assets.map((a) => <option key={a.id} value={a.id}>{a.name} ({a.asset_tag})</option>)}
+                {myAssets.map((a) => <option key={a.asset_id} value={a.asset_id}>{a.asset_name} ({a.asset_tag})</option>)}
               </select>
             </div>
             <div>
