@@ -1,4 +1,10 @@
 const { Router } = require('express');
+const c = require('./notifications.controller');
+const { authenticate } = require('../../middleware/auth');
 const router = Router();
-// TODO: implement routes
+router.use(authenticate);
+router.get('/',             c.list);
+router.get('/unread-count', c.unreadCount);
+router.put('/read-all',     c.markAllRead);
+router.put('/:id/read',     c.markRead);
 module.exports = router;
