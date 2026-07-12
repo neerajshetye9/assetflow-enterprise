@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/axios';
 
@@ -18,6 +18,36 @@ export default function Departments() {
   });
 
   const statusBadge = (s) => s === 'ACTIVE' ? <span className="badge-green">{s}</span> : <span className="badge-gray">{s}</span>;
+
+  // Build Hierarchy Tree
+  const buildTree = (departments) => {
+    const map = {};
+    const roots = [];
+    departments.forEach(d => { map[d.id] = { ...d, children: [] }; });
+    departments.forEach(d => {
+      if (d.parent_department_id && map[d.parent_department_id]) {
+        map[d.parent_department_id].children.push(map[d.id]);
+      } else {
+        roots.push(map[d.id]);
+      }
+    });
+    return roots;
+  };
+
+  const renderRow = (dept, level = 0) => (
+    <React.Fragment key={dept.id}>
+      <tr className="table-row">
+        <td className="table-cell font-medium" style={{ paddingLeft: `${level * 1.5 + 1}rem` }}>
+          {level > 0 && <span className="text-slate-500 mr-2">↳</span>}
+          {dept.name}
+        </td>
+        <td className="table-cell"><code className="text-xs bg-slate-700 px-1.5 py-0.5 rounded">{dept.code}</code></td>
+        <td className="table-cell text-slate-400">{dept.head_name || '—'}</td>
+        <td className="table-cell">{statusBadge(dept.status)}</td>
+      </tr>
+      {dept.children.map(child => renderRow(child, level + 1))}
+    </React.Fragment>
+  );
 
   return (
     <div>
@@ -74,21 +104,12 @@ export default function Departments() {
               <tr>
                 <th className="table-header">Name</th>
                 <th className="table-header">Code</th>
-                <th className="table-header">Parent</th>
                 <th className="table-header">Head</th>
                 <th className="table-header">Status</th>
               </tr>
             </thead>
             <tbody>
-              {depts.map((d) => (
-                <tr key={d.id} className="table-row">
-                  <td className="table-cell font-medium">{d.name}</td>
-                  <td className="table-cell"><code className="text-xs bg-slate-700 px-1.5 py-0.5 rounded">{d.code}</code></td>
-                  <td className="table-cell text-slate-400">{d.parent_name || '—'}</td>
-                  <td className="table-cell text-slate-400">{d.head_name || '—'}</td>
-                  <td className="table-cell">{statusBadge(d.status)}</td>
-                </tr>
-              ))}
+              {buildTree(depts).map(root => renderRow(root, 0))}
             </tbody>
           </table>
         )}

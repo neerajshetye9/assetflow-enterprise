@@ -45,7 +45,18 @@ const listActivityLogs = async (organizationId, { entityType, action, limit = 50
   return { logs: rows, total: parseInt(total.count), page, limit };
 };
 
-// ─── REPORTS ─────────────────────────────────────────────────
+// ─── REPORTS & CSV ───────────────────────────────────────────
+const toCSV = (data) => {
+  if (!data || !data.length) return '';
+  const headers = Object.keys(data[0]).join(',');
+  const rows = data.map(obj => 
+    Object.values(obj).map(v => {
+      const str = String(v ?? '');
+      return str.includes(',') ? `"${str.replace(/"/g, '""')}"` : str;
+    }).join(',')
+  );
+  return [headers, ...rows].join('\n');
+};
 const getAssetReport = async (organizationId, { from, to, format } = {}) => {
   const startDate = from || new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
   const endDate = to || new Date();
@@ -112,7 +123,47 @@ const getAllocationReport = async (organizationId) => {
     LEFT JOIN organization_memberships em ON em.id = aa.employee_id LEFT JOIN users u ON u.id = em.user_id
     LEFT JOIN departments d ON d.id = aa.department_id
     WHERE aa.organization_id = $1 ORDER BY aa.allocated_at DESC`, [organizationId]);
+  
+  if (format === 'csv') return toCSV(rows);
   return { allocations: rows, total: rows.length };
 };
 
-module.exports = { listNotifications, markRead, markAllRead, getUnreadCount, listActivityLogs, getAssetReport, getMaintenanceReport, getAllocationReport };
+const getMyAllocationReport = async (membershipId, format) => {
+  const { rows } = await query(`
+    SELECT aa.allocated_at, aa.expected_return_at, aa.returned_at, aa.status,
+           a.asset_tag, a.name AS asset_name, ac.name AS category
+    FROM asset_allocations aa
+    JOIN assets a ON a.id = aa.asset_id
+    JOIN asset_categories ac ON ac.id = a.category_id
+    WHERE aa.employee_id = $1 ORDER BY aa.allocated_at DESC`, [membershipId]);
+  if (format === 'csv') return toCSV(rows);
+  return { allocations: rows };
+};
+
+const getMyMaintenanceReport = async (membershipId, format) => {
+  const { rows } = await query(`
+    SELECT mr.id, mr.status, mr.priority, mr.issue_description, mr.resolution_notes, mr.created_at, mr.resolved_at,
+           a.asset_tag, a.name AS asset_name
+    FROM maintenance_requests mr
+    JOIN assets a ON a.id = mr.asset_id
+    WHERE mr.requested_by = $1 ORDER BY mr.created_at DESC`, [membershipId]);
+  if (format === 'csv') return toCSV(rows);
+  return { maintenance: rows };
+};
+
+const getMyBookingReport = async (membershipId, format) => {
+  const { rows } = await query(`
+    SELECT rb.id, rb.title, rb.start_at, rb.end_at, rb.status,
+           r.name AS resource_name, r.resource_type
+    FROM resource_bookings rb
+    JOIN resources r ON r.id = rb.resource_id
+    WHERE rb.booked_by = $1 ORDER BY rb.start_at DESC`, [membershipId]);
+  if (format === 'csv') return toCSV(rows);
+  return { bookings: rows };
+};
+
+module.exports = { 
+  listNotifications, markRead, markAllRead, getUnreadCount, listActivityLogs, 
+  getAssetReport, getMaintenanceReport, getAllocationReport,
+  getMyAllocationReport, getMyMaintenanceReport, getMyBookingReport 
+};

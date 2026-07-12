@@ -2,13 +2,31 @@ import { useQuery } from '@tanstack/react-query';
 import api from '../../lib/axios';
 
 const fetchReport = (type) => api.get(`/reports/${type}`).then((r) => r.data);
+const downloadCSV = async (type) => {
+  try {
+    const res = await api.get(`/reports/${type}?format=csv`, { responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `${type}_report.csv`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch(e) { console.error('Export failed', e); }
+};
 
 const fmt = (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 
 export default function Reports() {
-  const { data: assetReport, isLoading: loadingAssets } = useQuery({ queryKey: ['report-assets'], queryFn: () => fetchReport('assets') });
-  const { data: maintReport } = useQuery({ queryKey: ['report-maintenance'], queryFn: () => fetchReport('maintenance') });
-  const { data: allocReport } = useQuery({ queryKey: ['report-allocations'], queryFn: () => fetchReport('allocations') });
+  // Org Reports (may fail 403 if not admin, handled by boundary/ignore)
+  const { data: assetReport, isLoading: loadingAssets } = useQuery({ queryKey: ['report-assets'], queryFn: () => fetchReport('assets'), retry: false });
+  const { data: maintReport } = useQuery({ queryKey: ['report-maintenance'], queryFn: () => fetchReport('maintenance'), retry: false });
+  const { data: allocReport } = useQuery({ queryKey: ['report-allocations'], queryFn: () => fetchReport('allocations'), retry: false });
+
+  // Employee Reports (available to everyone)
+  const { data: myAlloc } = useQuery({ queryKey: ['my-allocations'], queryFn: () => fetchReport('me/allocations') });
+  const { data: myMaint } = useQuery({ queryKey: ['my-maintenance'], queryFn: () => fetchReport('me/maintenance') });
+  const { data: myBookings } = useQuery({ queryKey: ['my-bookings'], queryFn: () => fetchReport('me/bookings') });
 
   return (
     <div className="space-y-6">
@@ -19,7 +37,10 @@ export default function Reports() {
 
       {/* Asset Summary */}
       <div className="card">
-        <h3 className="font-semibold text-white mb-4">Asset Summary Report</h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="font-semibold text-white">Asset Summary Report</h3>
+          <button onClick={() => downloadCSV('assets')} className="btn-secondary text-xs px-3 py-1">Export CSV</button>
+        </div>
         {loadingAssets ? <p className="text-slate-400 text-sm">Loading…</p> : assetReport ? (
           <>
             <div className="grid grid-cols-4 gap-4 mb-4">
@@ -55,7 +76,10 @@ export default function Reports() {
 
       {/* Maintenance Report */}
       <div className="card">
-        <h3 className="font-semibold text-white mb-4">Maintenance Report (Last 90 days)</h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="font-semibold text-white">Maintenance Report (Last 90 days)</h3>
+          <button onClick={() => downloadCSV('maintenance')} className="btn-secondary text-xs px-3 py-1">Export CSV</button>
+        </div>
         {maintReport && (
           <div className="grid grid-cols-4 gap-4">
             <div className="card py-3 text-center"><p className="text-2xl font-bold text-white">{maintReport.summary?.total || 0}</p><p className="text-xs text-slate-400">Total Requests</p></div>
@@ -70,7 +94,10 @@ export default function Reports() {
 
       {/* Allocation Report */}
       <div className="card">
-        <h3 className="font-semibold text-white mb-4">Allocation Report</h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="font-semibold text-white">Allocation Report</h3>
+          <button onClick={() => downloadCSV('allocations')} className="btn-secondary text-xs px-3 py-1">Export CSV</button>
+        </div>
         {allocReport && (
           <div className="overflow-auto max-h-48">
             <table className="w-full text-sm">
@@ -92,6 +119,29 @@ export default function Reports() {
           </div>
         )}
       </div>
+
+      {/* MY HISTORY SECTION */}
+      <div className="mt-12 pt-8 border-t border-surface-border">
+        <h2 className="text-xl font-bold text-white mb-6">My History</h2>
+        <div className="grid grid-cols-3 gap-6">
+          <div className="card text-center">
+            <h3 className="font-semibold text-white mb-2">My Allocations</h3>
+            <p className="text-2xl font-bold text-primary-400 mb-4">{myAlloc?.allocations?.length || 0}</p>
+            <button onClick={() => downloadCSV('me/allocations')} className="btn-secondary w-full">Export Allocations CSV</button>
+          </div>
+          <div className="card text-center">
+            <h3 className="font-semibold text-white mb-2">My Maintenance Requests</h3>
+            <p className="text-2xl font-bold text-primary-400 mb-4">{myMaint?.maintenance?.length || 0}</p>
+            <button onClick={() => downloadCSV('me/maintenance')} className="btn-secondary w-full">Export Maintenance CSV</button>
+          </div>
+          <div className="card text-center">
+            <h3 className="font-semibold text-white mb-2">My Bookings</h3>
+            <p className="text-2xl font-bold text-primary-400 mb-4">{myBookings?.bookings?.length || 0}</p>
+            <button onClick={() => downloadCSV('me/bookings')} className="btn-secondary w-full">Export Bookings CSV</button>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }

@@ -34,16 +34,21 @@ const buildTokenPayload = async (userId, membershipId, organizationId) => {
 };
 
 // ─── Signup ───────────────────────────────────────────────────
-const signup = async ({ fullName, email, password, organizationName, organizationCode, industry, timezone }) => {
+const signup = async ({ fullName, email, password, organizationCode }) => {
   const client = await getClient();
   try {
     await client.query('BEGIN');
 
-    // Check email uniqueness
+    // 1. Check if org exists
+    const { rows: orgs } = await client.query('SELECT id, name, code FROM organizations WHERE code = $1', [organizationCode.toUpperCase()]);
+    if (orgs.length === 0) throw Object.assign(new Error('Organization not found'), { status: 404 });
+    const org = orgs[0];
+
+    // 2. Check email uniqueness
     const existing = await client.query('SELECT id FROM users WHERE email = $1', [email]);
     if (existing.rows.length > 0) throw Object.assign(new Error('Email already registered'), { status: 409 });
 
-    // Create user
+    // 3. Create user
     const passwordHash = await bcrypt.hash(password, 12);
     const { rows: [user] } = await client.query(
       `INSERT INTO users (full_name, email, password_hash)
@@ -51,26 +56,19 @@ const signup = async ({ fullName, email, password, organizationName, organizatio
       [fullName, email, passwordHash]
     );
 
-    // Create organization
-    const { rows: [org] } = await client.query(
-      `INSERT INTO organizations (name, code, industry, timezone)
-       VALUES ($1, $2, $3, $4) RETURNING id, name, code`,
-      [organizationName, organizationCode.toUpperCase(), industry || null, timezone || 'UTC']
-    );
-
-    // Create membership
+    // 4. Create membership (Base Employee)
+    const empCode = `${org.code}-${Math.floor(1000 + Math.random() * 9000)}`;
     const { rows: [membership] } = await client.query(
       `INSERT INTO organization_memberships (organization_id, user_id, employee_code, employment_status)
        VALUES ($1, $2, $3, 'ACTIVE') RETURNING id`,
-      [org.id, user.id, `${organizationCode.toUpperCase()}-001`]
+      [org.id, user.id, empCode]
     );
 
-    // Assign ADMIN role
-    const { rows: [adminRole] } = await client.query(`SELECT id FROM roles WHERE code = 'ADMIN'`);
+    // 5. Assign EMPLOYEE role (Base role)
+    const { rows: [empRole] } = await client.query(`SELECT id FROM roles WHERE code = 'EMPLOYEE'`);
     await client.query(
-      `INSERT INTO membership_roles (membership_id, role_id, assigned_by)
-       VALUES ($1, $2, $1)`,
-      [membership.id, adminRole.id]
+      `INSERT INTO membership_roles (membership_id, role_id) VALUES ($1, $2)`,
+      [membership.id, empRole.id]
     );
 
     await client.query('COMMIT');
