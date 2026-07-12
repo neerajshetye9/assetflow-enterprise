@@ -39,6 +39,20 @@ const updateStatus = async (organizationId, actorMembershipId, requestId, newSta
     );
     if (!req) throw Object.assign(new Error('Request not found'), { status: 404 });
 
+    // Strict State Machine Validation
+    const validTransitions = {
+      'PENDING': ['APPROVED', 'REJECTED'],
+      'APPROVED': ['TECHNICIAN_ASSIGNED'],
+      'TECHNICIAN_ASSIGNED': ['IN_PROGRESS'],
+      'IN_PROGRESS': ['RESOLVED'],
+      'REJECTED': [],
+      'RESOLVED': []
+    };
+
+    if (!validTransitions[req.status]?.includes(newStatus)) {
+      throw Object.assign(new Error(`Invalid status transition from ${req.status} to ${newStatus}. Must follow the strict workflow.`), { status: 400 });
+    }
+
     let updateSql = `UPDATE maintenance_requests SET status=$1`;
     const params = [newStatus];
 
