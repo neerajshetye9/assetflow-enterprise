@@ -18,7 +18,7 @@ export default function Resources() {
   const [showResForm, setShowResForm] = useState(false);
   const [showBookForm, setShowBookForm] = useState(false);
   const [resForm, setResForm] = useState({ name: '', resourceType: 'ROOM', capacity: '', locationId: '', isBookable: true, bookingAdvanceDays: 7 });
-  const [bookForm, setBookForm] = useState({ resourceId: '', startTime: '', endTime: '', title: '', purpose: '', attendeeCount: '' });
+  const [bookForm, setBookForm] = useState({ resourceId: '', startTime: '', endTime: '', title: '', purpose: '' });
   const [error, setError] = useState('');
 
   const createResMut = useMutation({
@@ -38,7 +38,7 @@ export default function Resources() {
     onSuccess: () => qc.invalidateQueries(['bookings']),
   });
 
-  const statusColor = { CONFIRMED:'green', PENDING:'yellow', CANCELLED:'gray', COMPLETED:'blue' };
+  const statusColor = { UPCOMING:'green', ONGOING:'yellow', CANCELLED:'gray', COMPLETED:'blue' };
 
   return (
     <div>
@@ -93,8 +93,7 @@ export default function Resources() {
             </div>
             <div><label className="label">Start Date & Time *</label><input id="book-start" type="datetime-local" className="input" value={bookForm.startTime} onChange={(e) => setBookForm({ ...bookForm, startTime: e.target.value })} /></div>
             <div><label className="label">End Date & Time *</label><input id="book-end" type="datetime-local" className="input" value={bookForm.endTime} onChange={(e) => setBookForm({ ...bookForm, endTime: e.target.value })} /></div>
-            <div><label className="label">Meeting Title</label><input id="book-title" className="input" value={bookForm.title} onChange={(e) => setBookForm({ ...bookForm, title: e.target.value })} placeholder="Weekly Standup" /></div>
-            <div><label className="label">Attendees</label><input id="book-attendees" type="number" className="input" value={bookForm.attendeeCount} onChange={(e) => setBookForm({ ...bookForm, attendeeCount: e.target.value })} placeholder="5" /></div>
+            <div className="col-span-2"><label className="label">Meeting Title</label><input id="book-title" className="input" value={bookForm.title} onChange={(e) => setBookForm({ ...bookForm, title: e.target.value })} placeholder="Weekly Standup" /></div>
             <div className="col-span-2"><label className="label">Purpose</label><textarea id="book-purpose" className="input" rows={2} value={bookForm.purpose} onChange={(e) => setBookForm({ ...bookForm, purpose: e.target.value })} /></div>
           </div>
           <div className="flex gap-3 mt-4">
