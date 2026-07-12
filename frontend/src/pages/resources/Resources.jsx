@@ -150,8 +150,8 @@ export default function Resources() {
                 {bookings.map((b) => (
                   <tr key={b.id} className="table-row">
                     <td className="table-cell font-medium">{b.resource_name}<div className="text-xs text-slate-400">{b.title}</div></td>
-                    <td className="table-cell text-slate-400 text-xs">{new Date(b.start_time).toLocaleString()}</td>
-                    <td className="table-cell text-slate-400 text-xs">{new Date(b.end_time).toLocaleString()}</td>
+                    <td className="table-cell text-slate-400 text-xs">{new Date(b.start_time).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'short', timeStyle: 'short' })}</td>
+                    <td className="table-cell text-slate-400 text-xs">{new Date(b.end_time).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'short', timeStyle: 'short' })}</td>
                     <td className="table-cell text-slate-400">{b.booked_by_name}</td>
                     <td className="table-cell"><span className={`badge-${statusColor[b.status] || 'gray'}`}>{b.status}</span></td>
                     <td className="table-cell">

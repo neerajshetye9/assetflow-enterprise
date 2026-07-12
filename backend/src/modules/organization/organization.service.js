@@ -4,6 +4,18 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 
 // ─── DEPARTMENTS ──────────────────────────────────────────────
+const getPublicDepartments = async (orgCode) => {
+  const { rows } = await query(
+    `SELECT d.id, d.name
+     FROM departments d
+     JOIN organizations o ON o.id = d.organization_id
+     WHERE o.code = $1 AND d.status = 'ACTIVE'
+     ORDER BY d.name`,
+    [orgCode.toUpperCase()]
+  );
+  return rows;
+};
+
 const getDepartments = async (organizationId) => {
   const { rows } = await query(
     `SELECT d.id, d.name, d.code, d.description, d.status,
@@ -165,7 +177,7 @@ const promoteEmployee = async (organizationId, actorMembershipId, targetMembersh
 };
 
 module.exports = {
-  getDepartments, createDepartment, updateDepartment,
+  getPublicDepartments, getDepartments, createDepartment, updateDepartment,
   getLocations, createLocation,
   getCategories, createCategory,
   getEmployees, createEmployee, promoteEmployee,

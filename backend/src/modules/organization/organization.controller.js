@@ -6,6 +6,7 @@ const wrap = (fn) => async (req, res, next) => {
 };
 
 module.exports = {
+  getPublicDepartments: wrap((req) => svc.getPublicDepartments(req.params.code)),
   getDepartments:   wrap((req) => svc.getDepartments(req.user.organizationId)),
   createDepartment: wrap((req) => svc.createDepartment(req.user.organizationId, req.user.membershipId, req.body)),
   updateDepartment: wrap((req) => svc.updateDepartment(req.user.organizationId, req.user.membershipId, req.params.id, req.body)),

@@ -34,7 +34,7 @@ export default function Login() {
         <p className="text-slate-400 mt-2">Enterprise Asset Management</p>
       </div>
       <div className="card">
-        <h2 className="text-xl font-semibold text-white mb-6">Sign in to your account</h2>
+        <h2 className="text-xl font-semibold text-white mb-6">Login to your account</h2>
         {error && <div className="mb-4 p-3 bg-red-900/40 border border-red-700 rounded-lg text-red-300 text-sm">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -51,11 +51,11 @@ export default function Login() {
             <Link to="/forgot-password" className="text-sm text-primary-400 hover:text-primary-300">Forgot password?</Link>
           </div>
           <button id="login-submit" type="submit" disabled={loading} className="w-full btn-primary py-2.5">
-            {loading ? 'Signing in...' : 'Sign in'}
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
         <p className="mt-4 text-center text-sm text-slate-400">
-          New organization?{' '}
+          New employee?{' '}
           <Link to="/signup" className="text-primary-400 hover:text-primary-300 font-medium">Create account</Link>
         </p>
       </div>

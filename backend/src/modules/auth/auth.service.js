@@ -34,7 +34,7 @@ const buildTokenPayload = async (userId, membershipId, organizationId) => {
 };
 
 // ─── Signup ───────────────────────────────────────────────────
-const signup = async ({ fullName, email, password, organizationCode }) => {
+const signup = async ({ fullName, email, password, organizationCode, employeeCode, jobTitle, departmentId }) => {
   const client = await getClient();
   try {
     await client.query('BEGIN');
@@ -56,15 +56,21 @@ const signup = async ({ fullName, email, password, organizationCode }) => {
       [fullName, email, passwordHash]
     );
 
-    // 4. Create membership (Base Employee)
-    const empCode = `${org.code}-${Math.floor(1000 + Math.random() * 9000)}`;
+    // 4. Validate department if provided
+    if (departmentId) {
+      const { rows: depts } = await client.query('SELECT id FROM departments WHERE id = $1 AND organization_id = $2', [departmentId, org.id]);
+      if (depts.length === 0) throw Object.assign(new Error('Invalid department for this organization'), { status: 400 });
+    }
+
+    // 5. Create membership (Base Employee)
+    const empCode = employeeCode || `${org.code}-${Math.floor(1000 + Math.random() * 9000)}`;
     const { rows: [membership] } = await client.query(
-      `INSERT INTO organization_memberships (organization_id, user_id, employee_code, employment_status)
-       VALUES ($1, $2, $3, 'ACTIVE') RETURNING id`,
-      [org.id, user.id, empCode]
+      `INSERT INTO organization_memberships (organization_id, user_id, employee_code, job_title, department_id, employment_status)
+       VALUES ($1, $2, $3, $4, $5, 'ACTIVE') RETURNING id`,
+      [org.id, user.id, empCode, jobTitle || null, departmentId || null]
     );
 
-    // 5. Assign EMPLOYEE role (Base role)
+    // 6. Assign EMPLOYEE role (Base role)
     const { rows: [empRole] } = await client.query(`SELECT id FROM roles WHERE code = 'EMPLOYEE'`);
     await client.query(
       `INSERT INTO membership_roles (membership_id, role_id) VALUES ($1, $2)`,
