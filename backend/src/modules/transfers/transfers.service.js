@@ -43,7 +43,7 @@ const approveTransfer = async (organizationId, actorMembershipId, requestId) => 
     if (!req) throw Object.assign(new Error('Request not found or not in REQUESTED state'), { status: 404 });
 
     // Close current allocation
-    await client.query(`UPDATE asset_allocations SET status='TRANSFERRED', updated_at=NOW() WHERE id=$1`, [req.current_allocation_id]);
+    await client.query(`UPDATE asset_allocations SET status='TRANSFERRED' WHERE id=$1`, [req.current_allocation_id]);
 
     // Create new allocation
     const { rows: [newAlloc] } = await client.query(
