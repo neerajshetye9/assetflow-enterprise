@@ -1,5 +1,6 @@
 const { query, getClient } = require('../../config/db');
 const { logActivity } = require('../../shared/activityLogger');
+const { sendNotification } = require('../../shared/notifier');
 
 // ─── TRANSFERS ────────────────────────────────────────────────
 const listTransferRequests = async (organizationId) => {
@@ -63,6 +64,7 @@ const approveTransfer = async (organizationId, actorMembershipId, requestId) => 
     await client.query(`UPDATE asset_transfer_requests SET status='COMPLETED', reviewed_by=$1, reviewed_at=NOW() WHERE id=$2`, [actorMembershipId, requestId]);
     await client.query('COMMIT');
     await logActivity({ organizationId, actorMembershipId, action: 'TRANSFER_COMPLETED', entityType: 'asset', entityId: req.asset_id });
+    if (req.target_employee_id) await sendNotification({ organizationId, recipientMembershipId: req.target_employee_id, type: 'TRANSFER_APPROVED', title: 'Transfer Complete', message: 'An asset has been transferred to you.', entityType: 'asset', entityId: req.asset_id });
     return newAlloc;
   } catch (err) { await client.query('ROLLBACK'); throw err; }
   finally { client.release(); }
@@ -138,3 +140,4 @@ const approveReturn = async (organizationId, actorMembershipId, requestId, body)
 };
 
 module.exports = { listTransferRequests, requestTransfer, approveTransfer, rejectTransfer, listReturnRequests, requestReturn, approveReturn };
+
