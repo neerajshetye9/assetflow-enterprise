@@ -1,5 +1,6 @@
 const { query, getClient } = require('../../config/db');
 const { logActivity } = require('../../shared/activityLogger');
+const { sendNotification } = require('../../shared/notifier');
 
 // ─── RESOURCES ────────────────────────────────────────────────
 const listResources = async (organizationId, filters = {}) => {
@@ -89,6 +90,7 @@ const createBooking = async (organizationId, actorMembershipId, body) => {
     [organizationId, resourceId, actorMembershipId, startTime, endTime, title || null, purpose || null]
   );
   await logActivity({ organizationId, actorMembershipId, action: 'BOOKING_CREATED', entityType: 'resource_booking', entityId: booking.id });
+  await sendNotification({ organizationId, recipientMembershipId: actorMembershipId, type: 'BOOKING_CONFIRMED', title: 'Booking Confirmed', message: `Your booking for \ is confirmed.`, entityType: 'booking', entityId: booking.id });
   return booking;
 };
 
@@ -119,3 +121,4 @@ const getResourceAvailability = async (organizationId, resourceId, date) => {
 };
 
 module.exports = { listResources, createResource, updateResource, listBookings, createBooking, cancelBooking, getResourceAvailability };
+

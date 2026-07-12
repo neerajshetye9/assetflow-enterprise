@@ -2,26 +2,26 @@ const { query } = require('../../config/db');
 
 // ─── NOTIFICATIONS ────────────────────────────────────────────
 const listNotifications = async (membershipId, { unreadOnly = false, limit = 30 } = {}) => {
-  let sql = `SELECT id, title, message, type, is_read, related_entity_type, related_entity_id, created_at
-             FROM notifications WHERE membership_id = $1`;
-  if (unreadOnly) sql += ' AND is_read = false';
+  let sql = `SELECT id, title, message, notification_type AS type, status, entity_type, entity_id, created_at
+             FROM notifications WHERE recipient_membership_id = $1`;
+  if (unreadOnly) sql += " AND status IN ('PENDING', 'SENT')";
   sql += ` ORDER BY created_at DESC LIMIT $2`;
   const { rows } = await query(sql, [membershipId, limit]);
   return rows;
 };
 
 const markRead = async (membershipId, notificationId) => {
-  await query(`UPDATE notifications SET is_read = true, read_at = NOW() WHERE id = $1 AND membership_id = $2`, [notificationId, membershipId]);
+  await query(`UPDATE notifications SET status = 'READ', read_at = NOW() WHERE id = $1 AND recipient_membership_id = $2`, [notificationId, membershipId]);
   return { success: true };
 };
 
 const markAllRead = async (membershipId) => {
-  const { rowCount } = await query(`UPDATE notifications SET is_read = true, read_at = NOW() WHERE membership_id = $1 AND is_read = false`, [membershipId]);
+  const { rowCount } = await query(`UPDATE notifications SET status = 'READ', read_at = NOW() WHERE recipient_membership_id = $1 AND status != 'READ'`, [membershipId]);
   return { updated: rowCount };
 };
 
 const getUnreadCount = async (membershipId) => {
-  const { rows: [r] } = await query(`SELECT COUNT(*) AS count FROM notifications WHERE membership_id = $1 AND is_read = false`, [membershipId]);
+  const { rows: [r] } = await query(`SELECT COUNT(*) AS count FROM notifications WHERE recipient_membership_id = $1 AND status != 'READ'`, [membershipId]);
   return { count: parseInt(r.count) };
 };
 
