@@ -131,7 +131,7 @@ const getAllocationReport = async (organizationId) => {
 const getMyAllocationReport = async (membershipId, format) => {
   const { rows } = await query(`
     SELECT aa.allocated_at, aa.expected_return_at, aa.returned_at, aa.status,
-           a.id AS asset_id, a.asset_tag, a.name AS asset_name, ac.name AS category
+           a.asset_tag, a.name AS asset_name, ac.name AS category
     FROM asset_allocations aa
     JOIN assets a ON a.id = aa.asset_id
     JOIN asset_categories ac ON ac.id = a.category_id
