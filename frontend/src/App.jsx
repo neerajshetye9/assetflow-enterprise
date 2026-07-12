@@ -23,7 +23,10 @@ import AssetDirectory from './pages/assets/AssetDirectory';
 import AssetDetail from './pages/assets/AssetDetail';
 import RegisterAsset from './pages/assets/RegisterAsset';
 import Allocations from './pages/allocations/Allocations';
+import Transfers from './pages/transfers/Transfers';
+import Returns from './pages/returns/Returns';
 import Maintenance from './pages/maintenance/Maintenance';
+
 
 // Vignesh's pages
 import Dashboard from './pages/dashboard/Dashboard';
@@ -79,8 +82,9 @@ export default function App() {
             <Route path="/allocations" element={<Allocations />} />
             <Route path="/allocations/request" element={<Allocations />} />
             <Route path="/allocations/active" element={<Allocations />} />
-            <Route path="/transfers" element={<Placeholder title="Transfers" />} />
-            <Route path="/returns" element={<Placeholder title="Returns" />} />
+            <Route path="/transfers" element={<Transfers />} />
+            <Route path="/returns" element={<Returns />} />
+
             <Route path="/maintenance" element={<Maintenance />} />
             <Route path="/maintenance/new" element={<Maintenance />} />
 
