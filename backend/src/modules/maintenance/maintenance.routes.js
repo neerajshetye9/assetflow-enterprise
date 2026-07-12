@@ -1,0 +1,15 @@
+const { Router } = require('express');
+const c = require('./maintenance.controller');
+const { authenticate } = require('../../middleware/auth');
+const { requireRole } = require('../../middleware/rbac');
+const router = Router();
+router.use(authenticate);
+router.get('/',                 c.listRequests);
+router.post('/',                c.createRequest);
+router.put('/:id/approve',      requireRole('ADMIN','ASSET_MANAGER'), c.approve);
+router.put('/:id/reject',       requireRole('ADMIN','ASSET_MANAGER'), c.reject);
+router.put('/:id/assign',       requireRole('ADMIN','ASSET_MANAGER'), c.assignTech);
+router.put('/:id/start',        requireRole('ADMIN','ASSET_MANAGER'), c.startWork);
+router.put('/:id/resolve',      requireRole('ADMIN','ASSET_MANAGER'), c.resolve);
+router.get('/:id/history',      c.getHistory);
+module.exports = router;
