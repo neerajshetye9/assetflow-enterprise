@@ -29,7 +29,7 @@ export default function Transfers() {
   const approveMut = useMutation({
     mutationFn: (id) => api.put(`/transfers/requests/${id}/approve`),
     onSuccess: () => { qc.invalidateQueries(['transfers']); qc.invalidateQueries(['assets']); },
-    onError: (err) => alert(err.response?.data?.error || 'Failed to approve'),
+    onError: (err) => { setError(err.response?.data?.error || 'Failed to approve'); window.scrollTo(0, 0); },
   });
 
   const rejectMut = useMutation({
@@ -54,6 +54,12 @@ export default function Transfers() {
         </button>
       </div>
 
+      {error && !showForm && (
+        <div className="mb-4 p-3 bg-red-900/40 border border-red-700 rounded-lg text-red-300 text-sm">
+          {error}
+        </div>
+      )}
+
       {showForm && (
         <div className="card mb-6">
           <h3 className="text-lg font-semibold text-white mb-4">New Transfer Request</h3>
@@ -71,14 +77,14 @@ export default function Transfers() {
             </div>
             <div>
               <label className="label">Transfer To — Employee</label>
-              <select id="transfer-emp" className="input" value={form.targetEmployeeId} onChange={(e) => setForm({ ...form, targetEmployeeId: e.target.value })}>
+              <select id="transfer-emp" className="input" value={form.targetEmployeeId} onChange={(e) => setForm({ ...form, targetEmployeeId: e.target.value, targetDepartmentId: '' })}>
                 <option value="">No specific employee</option>
                 {emps.map((e) => <option key={e.membership_id} value={e.membership_id}>{e.full_name}</option>)}
               </select>
             </div>
             <div>
               <label className="label">Transfer To — Department</label>
-              <select id="transfer-dept" className="input" value={form.targetDepartmentId} onChange={(e) => setForm({ ...form, targetDepartmentId: e.target.value })}>
+              <select id="transfer-dept" className="input" value={form.targetDepartmentId} onChange={(e) => setForm({ ...form, targetDepartmentId: e.target.value, targetEmployeeId: '' })}>
                 <option value="">No specific department</option>
                 {depts.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
               </select>
