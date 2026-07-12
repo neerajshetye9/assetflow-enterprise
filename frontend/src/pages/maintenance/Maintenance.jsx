@@ -3,20 +3,23 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/axios';
 
 const fetchMaint = () => api.get('/maintenance').then((r) => r.data);
-const fetchMyAssets = () => api.get('/reports/me/allocations').then((r) => r.data.allocations?.filter(a => a.status === 'ACTIVE') || []);
+const fetchAssets = () => api.get('/assets').then((r) => r.data);
+const fetchEmployees = () => api.get('/org/employees').then((r) => r.data);
 const PRIORITIES = ['LOW','MEDIUM','HIGH','CRITICAL'];
 const statusColor = { PENDING:'gray', APPROVED:'blue', REJECTED:'red', TECHNICIAN_ASSIGNED:'yellow', IN_PROGRESS:'yellow', RESOLVED:'green', CLOSED:'gray' };
 
 export default function Maintenance() {
   const qc = useQueryClient();
   const { data: requests = [], isLoading } = useQuery({ queryKey: ['maintenance'], queryFn: fetchMaint });
-  const { data: myAssets = [] } = useQuery({ queryKey: ['my-assets'], queryFn: fetchMyAssets });
+  const { data: assets = [] } = useQuery({ queryKey: ['assets'], queryFn: fetchAssets });
+  const { data: employees = [] } = useQuery({ queryKey: ['employees'], queryFn: fetchEmployees });
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ assetId: '', issueDescription: '', priority: 'MEDIUM' });
   const [error, setError] = useState('');
   const [resolvingId, setResolvingId] = useState(null);
   const [resolveNotes, setResolveNotes] = useState('');
   const [assigningId, setAssigningId] = useState(null);
+  const [technicianId, setTechnicianId] = useState('');
   const [technicianName, setTechnicianName] = useState('');
 
   const createMutation = useMutation({
@@ -48,7 +51,7 @@ export default function Maintenance() {
               <label className="label">Asset *</label>
               <select id="maint-asset" className="input" value={form.assetId} onChange={(e) => setForm({ ...form, assetId: e.target.value })}>
                 <option value="">Select asset…</option>
-                {myAssets.map((a) => <option key={a.asset_id} value={a.asset_id}>{a.asset_name} ({a.asset_tag})</option>)}
+                {assets.map((a) => <option key={a.id} value={a.id}>{a.name} ({a.asset_tag})</option>)}
               </select>
             </div>
             <div>
@@ -89,11 +92,21 @@ export default function Maintenance() {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="card w-full max-w-md">
             <h3 className="text-lg font-semibold text-white mb-4">Assign Technician</h3>
-            <label className="label">Technician Name</label>
+            
+            <label className="label">Internal Technician</label>
+            <select className="input mb-4" value={technicianId} onChange={(e) => setTechnicianId(e.target.value)}>
+              <option value="">-- Select Internal Technician --</option>
+              {employees.filter(e => ['Maintenance', 'IT', 'IT Services'].includes(e.department_name)).map(e => (
+                <option key={e.membership_id} value={e.membership_id}>{e.full_name} ({e.department_name})</option>
+              ))}
+            </select>
+
+            <label className="label">Or External Technician Name</label>
             <input className="input mb-4" value={technicianName} onChange={(e) => setTechnicianName(e.target.value)} placeholder="e.g. John Smith" />
+            
             <div className="flex gap-3">
-              <button onClick={() => { actionMutation.mutate({ id: assigningId, action: 'assign', body: { externalTechnicianName: technicianName } }); setAssigningId(null); setTechnicianName(''); }} className="btn-primary flex-1">Assign</button>
-              <button onClick={() => { setAssigningId(null); setTechnicianName(''); }} className="btn-secondary flex-1">Cancel</button>
+              <button onClick={() => { actionMutation.mutate({ id: assigningId, action: 'assign', body: { technicianId: technicianId || undefined, externalTechnicianName: technicianName || undefined } }); setAssigningId(null); setTechnicianName(''); setTechnicianId(''); }} className="btn-primary flex-1">Assign</button>
+              <button onClick={() => { setAssigningId(null); setTechnicianName(''); setTechnicianId(''); }} className="btn-secondary flex-1">Cancel</button>
             </div>
           </div>
         </div>
@@ -115,7 +128,7 @@ export default function Maintenance() {
                 </div>
                 <p className="text-sm text-slate-300 mb-1">{r.issue_description}</p>
                 <p className="text-xs text-slate-500">By: {r.requested_by_name} · {new Date(r.created_at).toLocaleDateString()}</p>
-                {r.external_technician_name && <p className="text-xs text-blue-400 mt-1">Tech: {r.external_technician_name}</p>}
+                {(r.technician_name || r.external_technician_name) && <p className="text-xs text-blue-400 mt-1">Tech: {r.technician_name || r.external_technician_name}</p>}
                 {r.resolution_notes && <p className="text-sm text-green-400 mt-1">✓ {r.resolution_notes}</p>}
               </div>
               <div className="flex flex-col gap-2 min-w-max">
