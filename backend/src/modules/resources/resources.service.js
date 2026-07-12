@@ -1,8 +1,8 @@
-const { query, getClient } = require('../../config/db');
+﻿const { query, getClient } = require('../../config/db');
 const { logActivity } = require('../../shared/activityLogger');
 const { sendNotification } = require('../../shared/notifier');
 
-// ─── RESOURCES ────────────────────────────────────────────────
+// â”€â”€â”€ RESOURCES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const listResources = async (organizationId, filters = {}) => {
   const { resourceType, locationId } = filters;
   let sql = `
@@ -45,7 +45,7 @@ const updateResource = async (organizationId, actorMembershipId, resourceId, bod
   return res;
 };
 
-// ─── BOOKINGS ─────────────────────────────────────────────────
+// â”€â”€â”€ BOOKINGS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const listBookings = async (organizationId, filters = {}) => {
   const { resourceId, membershipId, from, to } = filters;
   let sql = `
@@ -71,7 +71,7 @@ const createBooking = async (organizationId, actorMembershipId, body) => {
   const { resourceId, startTime, endTime, title, purpose } = body;
 
   // Verify resource is bookable
-  const { rows: [resource] } = await query(`SELECT id, status FROM resources WHERE id = $1 AND organization_id = $2`, [resourceId, organizationId]);
+  const { rows: [resource] } = await query(`SELECT id, name, status FROM resources WHERE id = $1 AND organization_id = $2`, [resourceId, organizationId]);
   if (!resource) throw Object.assign(new Error('Resource not found'), { status: 404 });
   if (resource.status !== 'AVAILABLE') throw Object.assign(new Error('Resource is not available for booking'), { status: 400 });
 
@@ -90,7 +90,7 @@ const createBooking = async (organizationId, actorMembershipId, body) => {
     [organizationId, resourceId, actorMembershipId, startTime, endTime, title || null, purpose || null]
   );
   await logActivity({ organizationId, actorMembershipId, action: 'BOOKING_CREATED', entityType: 'resource_booking', entityId: booking.id });
-  await sendNotification({ organizationId, recipientMembershipId: actorMembershipId, type: 'BOOKING_CONFIRMED', title: 'Booking Confirmed', message: `Your booking for \ is confirmed.`, entityType: 'booking', entityId: booking.id });
+  await sendNotification({ organizationId, recipientMembershipId: actorMembershipId, type: 'BOOKING_CONFIRMED', title: 'Booking Confirmed', message: `Your booking for ${resource.name} is confirmed.`, entityType: 'booking', entityId: booking.id });
   return booking;
 };
 
