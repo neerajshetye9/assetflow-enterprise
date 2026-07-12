@@ -16,6 +16,8 @@ export default function Maintenance() {
   const [error, setError] = useState('');
   const [resolvingId, setResolvingId] = useState(null);
   const [resolveNotes, setResolveNotes] = useState('');
+  const [assigningId, setAssigningId] = useState(null);
+  const [technicianName, setTechnicianName] = useState('');
 
   const createMutation = useMutation({
     mutationFn: (body) => api.post('/maintenance', body),
@@ -83,6 +85,20 @@ export default function Maintenance() {
         </div>
       )}
 
+      {assigningId && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="card w-full max-w-md">
+            <h3 className="text-lg font-semibold text-white mb-4">Assign Technician</h3>
+            <label className="label">Technician Name</label>
+            <input className="input mb-4" value={technicianName} onChange={(e) => setTechnicianName(e.target.value)} placeholder="e.g. John Smith" />
+            <div className="flex gap-3">
+              <button onClick={() => { actionMutation.mutate({ id: assigningId, action: 'assign', body: { externalTechnicianName: technicianName } }); setAssigningId(null); setTechnicianName(''); }} className="btn-primary flex-1">Assign</button>
+              <button onClick={() => { setAssigningId(null); setTechnicianName(''); }} className="btn-secondary flex-1">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-3">
         {isLoading ? <div className="card text-center text-slate-400">Loading…</div> : requests.length === 0 ? (
           <div className="card text-center text-slate-400">No maintenance requests yet.</div>
@@ -99,6 +115,7 @@ export default function Maintenance() {
                 </div>
                 <p className="text-sm text-slate-300 mb-1">{r.issue_description}</p>
                 <p className="text-xs text-slate-500">By: {r.requested_by_name} · {new Date(r.created_at).toLocaleDateString()}</p>
+                {r.external_technician_name && <p className="text-xs text-blue-400 mt-1">Tech: {r.external_technician_name}</p>}
                 {r.resolution_notes && <p className="text-sm text-green-400 mt-1">✓ {r.resolution_notes}</p>}
               </div>
               <div className="flex flex-col gap-2 min-w-max">
@@ -106,9 +123,12 @@ export default function Maintenance() {
                   <button id={`approve-maint-${r.id}`} onClick={() => actionMutation.mutate({ id: r.id, action: 'approve' })} className="btn-primary text-xs px-3 py-1">Approve</button>
                 )}
                 {r.status === 'APPROVED' && (
+                  <button onClick={() => setAssigningId(r.id)} className="btn-primary text-xs px-3 py-1">Assign Tech</button>
+                )}
+                {r.status === 'TECHNICIAN_ASSIGNED' && (
                   <button onClick={() => actionMutation.mutate({ id: r.id, action: 'start' })} className="btn-secondary text-xs px-3 py-1">Start Work</button>
                 )}
-                {(r.status === 'IN_PROGRESS' || r.status === 'TECHNICIAN_ASSIGNED') && (
+                {r.status === 'IN_PROGRESS' && (
                   <button id={`resolve-maint-${r.id}`} onClick={() => setResolvingId(r.id)} className="btn-primary text-xs px-3 py-1">Resolve</button>
                 )}
               </div>
