@@ -88,7 +88,7 @@ export default function Resources() {
             <div className="col-span-2"><label className="label">Resource *</label>
               <select id="book-resource" className="input" value={bookForm.resourceId} onChange={(e) => setBookForm({ ...bookForm, resourceId: e.target.value })}>
                 <option value="">Select resource…</option>
-                {resources.filter(r => r.is_bookable && r.status === 'AVAILABLE').map((r) => <option key={r.id} value={r.id}>{typeIcon[r.resource_type]} {r.name} (cap: {r.capacity || '—'})</option>)}
+                {resources.filter(r => r.status === 'AVAILABLE').map((r) => <option key={r.id} value={r.id}>{typeIcon[r.resource_type]} {r.name} (cap: {r.capacity || '—'})</option>)}
               </select>
             </div>
             <div><label className="label">Start Date & Time *</label><input id="book-start" type="datetime-local" className="input" value={bookForm.startTime} onChange={(e) => setBookForm({ ...bookForm, startTime: e.target.value })} /></div>
@@ -127,7 +127,7 @@ export default function Resources() {
               </div>
               <p className="text-slate-400 text-sm">{r.resource_type} · Cap: {r.capacity || '—'} · {r.location_name || 'No location'}</p>
               {r.active_bookings > 0 && <p className="text-xs text-yellow-400 mt-1">{r.active_bookings} upcoming booking(s)</p>}
-              {r.is_bookable && <button onClick={() => { setBookForm(f => ({...f, resourceId: r.id})); setShowBookForm(true); }} className="mt-3 text-xs text-primary-400 hover:text-primary-300">Book this →</button>}
+              <button onClick={() => { setBookForm(f => ({...f, resourceId: r.id})); setShowBookForm(true); }} className="mt-3 text-xs text-primary-400 hover:text-primary-300">Book this →</button>
             </div>
           ))}
         </div>
