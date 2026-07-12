@@ -1,5 +1,6 @@
 const { query, getClient } = require('../../config/db');
 const { logActivity } = require('../../shared/activityLogger');
+const { sendNotification } = require('../../shared/notifier');
 
 // ─── ALLOCATION REQUESTS ──────────────────────────────────────
 const listRequests = async (organizationId) => {
@@ -67,7 +68,8 @@ const approveRequest = async (organizationId, actorMembershipId, requestId) => {
     );
 
     await client.query('COMMIT');
-    await logActivity({ organizationId, actorMembershipId, action: 'ALLOCATION_APPROVED', entityType: 'asset_allocation', entityId: alloc.id });
+    await logActivity({ organizationId, actorMembershipId, action: 'ALLOCATION_APPROVED', entityType: 'asset', entityId: req.asset_id });
+    if (req.target_employee_id) await sendNotification({ organizationId, recipientMembershipId: req.target_employee_id, type: 'ASSET_ASSIGNED', title: 'Asset Allocated', message: 'A new asset has been allocated to you.', entityType: 'asset', entityId: req.asset_id });
     return alloc;
   } catch (err) { await client.query('ROLLBACK'); throw err; }
   finally { client.release(); }
@@ -103,3 +105,4 @@ const listActiveAllocations = async (organizationId) => {
 };
 
 module.exports = { listRequests, createRequest, approveRequest, rejectRequest, listActiveAllocations };
+
