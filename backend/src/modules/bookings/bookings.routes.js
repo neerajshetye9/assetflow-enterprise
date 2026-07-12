@@ -1,4 +1,10 @@
 const { Router } = require('express');
+const c = require('../resources/resources.controller');
+const { authenticate } = require('../../middleware/auth');
 const router = Router();
-// TODO: implement routes
+router.use(authenticate);
+router.get('/',         c.listBookings);
+router.get('/my',       c.myBookings);
+router.post('/',        c.createBooking);
+router.put('/:id/cancel', c.cancelBooking);
 module.exports = router;

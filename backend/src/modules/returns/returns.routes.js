@@ -1,4 +1,10 @@
 const { Router } = require('express');
+const c = require('./returns.controller');
+const { authenticate } = require('../../middleware/auth');
+const { requireRole } = require('../../middleware/rbac');
 const router = Router();
-// TODO: implement routes
+router.use(authenticate);
+router.get('/requests',             c.listRequests);
+router.post('/requests',            c.requestReturn);
+router.put('/requests/:id/approve', requireRole('ADMIN','ASSET_MANAGER'), c.approveReturn);
 module.exports = router;

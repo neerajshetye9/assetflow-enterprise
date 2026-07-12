@@ -1,4 +1,10 @@
 const { Router } = require('express');
+const c = require('./dashboard.controller');
+const { authenticate } = require('../../middleware/auth');
 const router = Router();
-// TODO: implement routes
+router.use(authenticate);
+router.get('/',                c.getDashboard);
+router.get('/by-category',     c.getAssetsByCategory);
+router.get('/by-status',       c.getAssetsByStatus);
+router.get('/maintenance-trend', c.getMaintenanceTrend);
 module.exports = router;
