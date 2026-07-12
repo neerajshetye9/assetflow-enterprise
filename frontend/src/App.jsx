@@ -25,6 +25,13 @@ import RegisterAsset from './pages/assets/RegisterAsset';
 import Allocations from './pages/allocations/Allocations';
 import Maintenance from './pages/maintenance/Maintenance';
 
+// Vignesh's pages
+import Dashboard from './pages/dashboard/Dashboard';
+import Resources from './pages/resources/Resources';
+import Notifications from './pages/notifications/Notifications';
+import ActivityLogs from './pages/activitylogs/ActivityLogs';
+import Reports from './pages/reports/Reports';
+
 const Placeholder = ({ title }) => (
   <div className="card">
     <h2 className="text-xl font-semibold text-slate-100">{title}</h2>
@@ -52,7 +59,8 @@ export default function App() {
           {/* Protected routes */}
           <Route element={<AppLayout />}>
             <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<Placeholder title="Dashboard" />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+
 
             {/* Org */}
             <Route path="/org/departments" element={<Departments />} />
@@ -77,12 +85,15 @@ export default function App() {
             <Route path="/maintenance/new" element={<Maintenance />} />
 
 
-            {/* Vignesh's routes — placeholders */}
-            <Route path="/resources" element={<Placeholder title="Resources" />} />
-            <Route path="/bookings/*" element={<Placeholder title="Bookings" />} />
-            <Route path="/notifications" element={<Placeholder title="Notifications" />} />
-            <Route path="/activity-logs" element={<Placeholder title="Activity Logs" />} />
-            <Route path="/reports/*" element={<Placeholder title="Reports" />} />
+            {/* Vignesh's routes */}
+            <Route path="/resources" element={<Resources />} />
+            <Route path="/bookings" element={<Resources />} />
+            <Route path="/bookings/calendar" element={<Resources />} />
+            <Route path="/bookings/my" element={<Resources />} />
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/activity-logs" element={<ActivityLogs />} />
+            <Route path="/reports" element={<Reports />} />
+
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
