@@ -25,7 +25,14 @@ export default function Dashboard() {
   const { data: dash, isLoading, error } = useQuery({ queryKey: ['dashboard'], queryFn: fetchDash });
 
   if (isLoading) return <div className="p-8 text-center text-slate-400">Loading dashboard…</div>;
-  if (error) return <div className="p-8 text-center text-red-400">Failed to load dashboard. Are you signed in to an organization?</div>;
+  if (error) return (
+    <div className="card border-red-700 bg-red-900/20">
+      <h2 className="text-lg font-semibold text-red-300 mb-2">Dashboard unavailable</h2>
+      <p className="text-slate-400 text-sm">The server returned an error. Make sure the backend is running and you have an active session.</p>
+      <code className="text-xs text-red-400 mt-2 block">{error?.response?.data?.error || error?.message}</code>
+    </div>
+  );
+
 
   const assets = dash?.assets || {};
   const totalValue = parseFloat(assets.total_value || 0);
