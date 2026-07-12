@@ -1,0 +1,93 @@
+# ==============================
+# AssetFlow Enterprise .gitignore
+# ==============================
+
+# --- Environment & Secrets ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# --- SSH Keys (never commit) ---
+id_rsa
+id_ed25519
+id_ecdsa
+*.pub.private
+
+# --- Node.js ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm
+.yarn/
+.pnp.*
+package-lock.json.bak
+
+# --- Build Outputs ---
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
+*.tsbuildinfo
+
+# --- Database ---
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+
+# --- Logs ---
+logs/
+*.log
+*.log.*
+
+# --- OS Files ---
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# --- IDE & Editor ---
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.history/
+
+# --- Testing ---
+coverage/
+.nyc_output/
+*.lcov
+
+# --- Temporary Files ---
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.swp
+*.orig
+
+# --- AI & Tool Artifacts ---
+.gemini/
+.cursor/
+.copilot/
+
+# --- Docker ---
+.dockerignore
+docker-compose.override.yml
+
+# --- Uploads (runtime) ---
+uploads/
+public/uploads/
