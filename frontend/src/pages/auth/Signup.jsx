@@ -7,8 +7,7 @@ export default function Signup() {
   const navigate = useNavigate();
   const setAuth = useAuthStore((s) => s.setAuth);
   const [form, setForm] = useState({
-    fullName: '', email: '', password: '',
-    organizationName: '', organizationCode: '', industry: '', timezone: 'UTC',
+    fullName: '', email: '', password: '', organizationCode: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -37,23 +36,13 @@ export default function Signup() {
         <p className="text-slate-400 mt-2">Set up your organization</p>
       </div>
       <div className="card">
-        <h2 className="text-xl font-semibold text-white mb-6">Create your organization</h2>
+        <h2 className="text-xl font-semibold text-white mb-6">Join your organization</h2>
         {error && <div className="mb-4 p-3 bg-red-900/40 border border-red-700 rounded-lg text-red-300 text-sm">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="label">Organization Name</label>
-              <input id="org-name" type="text" className="input" placeholder="TechNova Pvt. Ltd." value={form.organizationName} onChange={set('organizationName')} required />
-            </div>
-            <div>
-              <label className="label">Organization Code</label>
-              <input id="org-code" type="text" className="input" placeholder="TECHNOVA" value={form.organizationCode} onChange={(e) => setForm({ ...form, organizationCode: e.target.value.toUpperCase() })} required />
-              <p className="text-xs text-slate-500 mt-1">Uppercase letters/numbers only</p>
-            </div>
-          </div>
           <div>
-            <label className="label">Industry</label>
-            <input id="industry" type="text" className="input" placeholder="Technology, Healthcare, Manufacturing…" value={form.industry} onChange={set('industry')} />
+            <label className="label">Organization Code</label>
+            <input id="org-code" type="text" className="input" placeholder="e.g. TECH" value={form.organizationCode} onChange={(e) => setForm({ ...form, organizationCode: e.target.value.toUpperCase() })} required />
+            <p className="text-xs text-slate-500 mt-1">Ask your administrator for your organization code.</p>
           </div>
           <hr className="border-surface-border" />
           <div>
@@ -69,7 +58,7 @@ export default function Signup() {
             <input id="password" type="password" className="input" placeholder="Min 8 characters" value={form.password} onChange={set('password')} required />
           </div>
           <button id="signup-submit" type="submit" disabled={loading} className="w-full btn-primary py-2.5">
-            {loading ? 'Creating...' : 'Create Organization & Account'}
+            {loading ? 'Joining...' : 'Create Account'}
           </button>
         </form>
         <p className="mt-4 text-center text-sm text-slate-400">

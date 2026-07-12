@@ -1,12 +1,15 @@
 const app = require('./app');
 const env = require('./config/env');
 const { pool } = require('./config/db');
+const { startCronJobs } = require('./shared/cron');
 
 const start = async () => {
   try {
     // Verify DB connection
     await pool.query('SELECT 1');
     console.log('✓ Database connected');
+    
+    startCronJobs();
 
     app.listen(env.PORT, () => {
       console.log(`✓ AssetFlow API running on http://localhost:${env.PORT}`);
