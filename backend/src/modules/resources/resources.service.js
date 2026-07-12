@@ -5,7 +5,7 @@ const { logActivity } = require('../../shared/activityLogger');
 const listResources = async (organizationId, filters = {}) => {
   const { resourceType, locationId } = filters;
   let sql = `
-    SELECT r.id, r.name, r.resource_type, r.capacity, r.description, r.status, r.is_bookable, r.booking_advance_days,
+    SELECT r.id, r.name, r.resource_type, r.capacity, r.description, r.status,
            l.name AS location_name, l.id AS location_id,
            COUNT(rb.id) FILTER (WHERE rb.status = 'CONFIRMED' AND rb.end_time > NOW()) AS active_bookings
     FROM resources r
@@ -23,9 +23,9 @@ const listResources = async (organizationId, filters = {}) => {
 const createResource = async (organizationId, actorMembershipId, body) => {
   const { name, resourceType, capacity, description, locationId, isBookable, bookingAdvanceDays } = body;
   const { rows: [res] } = await query(
-    `INSERT INTO resources (organization_id, name, resource_type, capacity, description, location_id, is_bookable, booking_advance_days)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
-    [organizationId, name, resourceType || 'ROOM', capacity || null, description || null, locationId || null, isBookable !== false, bookingAdvanceDays || 7]
+    `INSERT INTO resources (organization_id, name, resource_type, capacity, description, location_id)
+     VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+    [organizationId, name, resourceType || 'ROOM', capacity || null, description || null, locationId || null]
   );
   await logActivity({ organizationId, actorMembershipId, action: 'RESOURCE_CREATED', entityType: 'resource', entityId: res.id });
   return res;
@@ -36,11 +36,9 @@ const updateResource = async (organizationId, actorMembershipId, resourceId, bod
   const { rows: [res] } = await query(
     `UPDATE resources SET
        name = COALESCE($1, name), capacity = COALESCE($2, capacity),
-       description = COALESCE($3, description), status = COALESCE($4, status),
-       is_bookable = COALESCE($5, is_bookable), booking_advance_days = COALESCE($6, booking_advance_days),
-       updated_at = NOW()
-     WHERE id = $7 AND organization_id = $8 RETURNING *`,
-    [name, capacity, description, status, isBookable, bookingAdvanceDays, resourceId, organizationId]
+       description = COALESCE($3, description), status = COALESCE($4, status)
+     WHERE id = $5 AND organization_id = $6 RETURNING *`,
+    [name, capacity, description, status, resourceId, organizationId]
   );
   if (!res) throw Object.assign(new Error('Resource not found'), { status: 404 });
   return res;
@@ -72,9 +70,9 @@ const createBooking = async (organizationId, actorMembershipId, body) => {
   const { resourceId, startTime, endTime, title, purpose, attendeeCount } = body;
 
   // Verify resource is bookable
-  const { rows: [resource] } = await query(`SELECT id, is_bookable, status FROM resources WHERE id = $1 AND organization_id = $2`, [resourceId, organizationId]);
+  const { rows: [resource] } = await query(`SELECT id, status FROM resources WHERE id = $1 AND organization_id = $2`, [resourceId, organizationId]);
   if (!resource) throw Object.assign(new Error('Resource not found'), { status: 404 });
-  if (!resource.is_bookable || resource.status !== 'AVAILABLE') throw Object.assign(new Error('Resource is not available for booking'), { status: 400 });
+  if (resource.status !== 'AVAILABLE') throw Object.assign(new Error('Resource is not available for booking'), { status: 400 });
 
   // Check overlap using simple query (btree_gist handles constraint but gives clearer UX with this check)
   const { rows: overlap } = await query(
