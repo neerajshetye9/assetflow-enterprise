@@ -34,7 +34,8 @@ export default function Allocations() {
   });
   const approveMutation = useMutation({
     mutationFn: (id) => api.put(`/allocations/requests/${id}/approve`),
-    onSuccess: () => { qc.invalidateQueries(['alloc-requests']); qc.invalidateQueries(['alloc-active']); },
+    onSuccess: () => { qc.invalidateQueries(['alloc-requests']); qc.invalidateQueries(['alloc-active']); setError(''); },
+    onError: (err) => { setError(err.response?.data?.error || 'Failed to approve'); window.scrollTo(0, 0); },
   });
   const rejectMutation = useMutation({
     mutationFn: ({ id, reason }) => api.put(`/allocations/requests/${id}/reject`, { rejectionReason: reason }),
@@ -65,14 +66,14 @@ export default function Allocations() {
             </div>
             <div>
               <label className="label">Target Employee</label>
-              <select id="alloc-emp" className="input" value={form.targetEmployeeId} onChange={(e) => setForm({ ...form, targetEmployeeId: e.target.value })}>
+              <select id="alloc-emp" className="input" value={form.targetEmployeeId} onChange={(e) => setForm({ ...form, targetEmployeeId: e.target.value, targetDepartmentId: '' })}>
                 <option value="">No specific employee</option>
                 {emps.map((e) => <option key={e.membership_id} value={e.membership_id}>{e.full_name}</option>)}
               </select>
             </div>
             <div>
               <label className="label">Target Department</label>
-              <select id="alloc-dept" className="input" value={form.targetDepartmentId} onChange={(e) => setForm({ ...form, targetDepartmentId: e.target.value })}>
+              <select id="alloc-dept" className="input" value={form.targetDepartmentId} onChange={(e) => setForm({ ...form, targetDepartmentId: e.target.value, targetEmployeeId: '' })}>
                 <option value="">No specific department</option>
                 {depts.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
               </select>
@@ -97,11 +98,17 @@ export default function Allocations() {
 
       <div className="flex gap-2 mb-4">
         {['active','requests'].map((t) => (
-          <button key={t} onClick={() => setTab(t)} className={tab === t ? 'btn-primary' : 'btn-secondary'}>
+          <button key={t} onClick={() => { setTab(t); setError(''); }} className={tab === t ? 'btn-primary' : 'btn-secondary'}>
             {t === 'active' ? 'Active Allocations' : `Requests (${requests.filter(r => r.status === 'PENDING').length})`}
           </button>
         ))}
       </div>
+      
+      {error && !showForm && (
+        <div className="mb-4 p-3 bg-red-900/40 border border-red-700 rounded-lg text-red-300 text-sm">
+          {error}
+        </div>
+      )}
 
       {tab === 'active' && (
         <div className="card p-0 overflow-hidden">
